@@ -14,10 +14,12 @@ import danogl.gui.rendering.TextRenderable;
 import danogl.util.Vector2;
 import java.awt.*;
 import java.util.Random;
-
 import danogl.gui.UserInputListener;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.Random;
 
 public class BrickerGameManager extends GameManager {
+    private static final int DISTRIBUTION_CONST = 6;
     private static final int DISTANCE_PADDLE_FROM_BOTTOM = 30;
     private static final int BORDER_WIDTH = 10;
     private static final int PADDLE_HEIGHT = 20;
@@ -79,9 +81,7 @@ public class BrickerGameManager extends GameManager {
         //create ball
         createBall();
         //create paddles
-        Renderable paddleImage = imageReader.readImage(
-                "assets/paddle.png", false);
-        createUserPaddle(paddleImage);
+        createUserPaddle();
         //createAIPaddle(windowDimensions, paddleImage);
         //create bricks
         createBricks();
@@ -216,25 +216,40 @@ public class BrickerGameManager extends GameManager {
         ball.setVelocity(new Vector2(ballVelX, ballVelY));
     }
 
+    private static BrickType getRandomBrickType() {
+        int randomNumber = ThreadLocalRandom.current().nextInt(DISTRIBUTION_CONST);
+        BrickType[] samplingArray = new BrickType[] {
+                BrickType.ADD_PACK_TYPE,
+//                BrickType.ADD_PADDLE_TYPE,
+//                BrickType.TURBO_TYPE,
+//                BrickType.EXTRA_LIFE,
+//                BrickType.DOUBLE_TYPE,
+                BrickType.BASIC_TYPE,
+                BrickType.BASIC_TYPE,
+                BrickType.BASIC_TYPE,
+                BrickType.BASIC_TYPE,
+                BrickType.BASIC_TYPE,
+        };
+        return samplingArray[randomNumber];
+    }
+
     private void createBricks() {
         Renderable brickImage =
                 imageReader.readImage("assets/brick.png", true);
-        CollisionStrategy collisionStrategy = new AddPuckStrategy(this);
-//        CollisionStrategy collisionStrategy = new BasicCollisionStrategy(this);
-
         Vector2 location = Vector2.ZERO;
         location = location.add(new Vector2(BORDER_WIDTH + PIXEL, BORDER_WIDTH+PIXEL));
         float distanceBetweenBricks =
                 (windowDimensions.x() - ((BORDER_WIDTH+PIXEL)*2)) / this.numBricksPerRow;
         // todo 2 magic_number?
         Vector2 brickDim = new Vector2(distanceBetweenBricks - PIXEL, BRICK_HEIGHT);
+
+        BrickFactory brickFactory = new BrickFactory(brickDim, brickImage, this);
+        BrickType brickType;
         for (int curRow=0; curRow < this.numRows; curRow++) {
             for (int curBrick=0; curBrick < this.numBricksPerRow; curBrick++) {
-                Brick brick = new Brick(
-                        location,
-                        brickDim,
-                        brickImage,
-                        collisionStrategy);
+                brickType = getRandomBrickType();
+                Brick brick = brickFactory.getBrick(brickType);
+                brick.setTopLeftCorner(location);
                 gameObjects().addGameObject(brick);
                 location = location.add(new Vector2(distanceBetweenBricks, 0));
             }
@@ -242,12 +257,17 @@ public class BrickerGameManager extends GameManager {
         }
     }
 
-    private void createUserPaddle(Renderable paddleImage) {
+    private void createUserPaddle() {
+        Renderable paddleImage = imageReader.readImage(
+                "assets/paddle.png", false);
         GameObject userPaddle = new UserPaddle(
                 Vector2.ZERO,
                 new Vector2(PADDLE_WIDTH, PADDLE_HEIGHT),
                 paddleImage,
-                inputListener);
+                inputListener,
+                BORDER_WIDTH,
+                (int) windowDimensions.x() - BORDER_WIDTH);
+
 
         userPaddle.setCenter(
                 new Vector2(windowDimensions.x()/2,
@@ -298,6 +318,6 @@ public class BrickerGameManager extends GameManager {
     public static void main(String[] args) {
         new BrickerGameManager(
                 "Bricker",
-                new Vector2(700, 500),3,3).run();
+                new Vector2(700, 500)).run();
     }
 }

@@ -9,7 +9,9 @@ import java.awt.event.KeyEvent;
 
 public class UserPaddle extends GameObject {
     private static final float MOVEMENT_SPEED = 400;
-    private UserInputListener inputListener;
+    private final UserInputListener inputListener;
+    private final int leftBorder;
+    private final int rightBorder;
 
     /**
      * Construct a new GameObject instance.
@@ -20,19 +22,25 @@ public class UserPaddle extends GameObject {
      * @param inputListener
      */
     public UserPaddle(Vector2 topLeftCorner, Vector2 dimensions,
-                      Renderable renderable, UserInputListener inputListener) {
+                      Renderable renderable, UserInputListener inputListener, int leftBorder,
+                      int rightBorder) {
         super(topLeftCorner, dimensions, renderable);
         this.inputListener = inputListener;
+        this.leftBorder = leftBorder;
+        this.rightBorder = rightBorder;
     }
 
     @Override
     public void update(float deltaTime) {
         super.update(deltaTime);
         Vector2 movementDir = Vector2.ZERO;
-        if(inputListener.isKeyPressed(KeyEvent.VK_LEFT)) {
+        
+        boolean inLeftwise = this.getTopLeftCorner().x() > this.leftBorder;
+        boolean inRightwise =this.getTopLeftCorner().x() + getDimensions().x() < this.rightBorder;
+        if(inputListener.isKeyPressed(KeyEvent.VK_LEFT) && inLeftwise) {
             movementDir = movementDir.add(Vector2.LEFT);
         }
-        if(inputListener.isKeyPressed(KeyEvent.VK_RIGHT)) {
+        if(inputListener.isKeyPressed(KeyEvent.VK_RIGHT) && inRightwise) {
             movementDir = movementDir.add(Vector2.RIGHT);
         }
         setVelocity(movementDir.mult(MOVEMENT_SPEED));

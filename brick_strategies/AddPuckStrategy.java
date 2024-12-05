@@ -7,7 +7,6 @@ public class AddPuckStrategy implements CollisionStrategy {
     private final BrickerGameManager brickerGameManager;
 
     public AddPuckStrategy(BrickerGameManager brickerGameManager){
-        System.out.println("reached here");
         this.brickerGameManager = brickerGameManager;
     }
     @Override
