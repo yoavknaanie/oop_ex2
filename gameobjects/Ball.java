@@ -9,6 +9,7 @@ import danogl.util.Vector2;
 
 public class Ball extends GameObject {
     private Sound collisionSound;
+    private int collisionsCounter = 0;
 
     /**
      * Construct a new GameObject instance.
@@ -30,5 +31,10 @@ public class Ball extends GameObject {
         Vector2 newVel = getVelocity().flipped(collision.getNormal());
         setVelocity(newVel);
         collisionSound.play();
+        collisionsCounter++;
+    }
+
+    public int getCollisionCounter() {
+        return collisionsCounter;
     }
 }
