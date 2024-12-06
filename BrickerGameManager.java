@@ -1,11 +1,9 @@
 package bricker;
 
-import bricker.brick_strategies.AddPuckStrategy;
-import bricker.brick_strategies.BasicCollisionStrategy;
-import bricker.brick_strategies.CollisionStrategy;
 import bricker.gameobjects.*;
 import danogl.GameManager;
 import danogl.GameObject;
+import danogl.collisions.GameObjectCollection;
 import danogl.collisions.Layer;
 import danogl.gui.*;
 import danogl.gui.rendering.RectangleRenderable;
@@ -16,9 +14,14 @@ import java.awt.*;
 import java.util.Random;
 import danogl.gui.UserInputListener;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.Random;
 
 public class BrickerGameManager extends GameManager {
+
+    public static final String BALL_TAG = "ball_tag";
+    public static final String PACK_TAG = "pack_tag";
+
+    public static final String EXTRA_PADDLE_TAG = "extra_paddle";
+    private static final String USER_PADDLE_TAG = "user_paddle";
     private static final int DISTRIBUTION_CONST = 6;
     private static final int DISTANCE_PADDLE_FROM_BOTTOM = 30;
     private static final int BORDER_WIDTH = 10;
@@ -89,6 +92,13 @@ public class BrickerGameManager extends GameManager {
         createBorders(windowDimensions);
         // init lives
         initLives();
+
+//        check
+//        System.out.println(gameObjects().iterator().getClass());
+//        for (GameObject obj: gameObjects().objectsInLayer(Layer.DEFAULT)){
+//            System.out.println("here");
+//            System.out.println(obj.getTag());
+//        }
     }
 
 
@@ -180,9 +190,10 @@ public class BrickerGameManager extends GameManager {
         ball = new Ball(
                 Vector2.ZERO, new Vector2(BALL_RADIUS, BALL_RADIUS), ballImage, collisionSound);
         setBall(ball, false);
+        ball.setTag(BALL_TAG);
         gameObjects().addGameObject(ball);
     }
-
+// todo make sure there are no more than 4 packs
     public void createPucks() {
         Renderable puckImage =
                 imageReader.readImage("assets/mockBall.png", true);
@@ -191,6 +202,7 @@ public class BrickerGameManager extends GameManager {
             Puck puck = new Puck(
                     Vector2.ZERO, new Vector2(PUCK_RADIUS, PUCK_RADIUS), puckImage, collisionSound);
             setBall(puck,true);
+            puck.setTag(PACK_TAG);
             gameObjects().addGameObject(puck);
         }
     }
@@ -220,7 +232,7 @@ public class BrickerGameManager extends GameManager {
         int randomNumber = ThreadLocalRandom.current().nextInt(DISTRIBUTION_CONST);
         BrickType[] samplingArray = new BrickType[] {
                 BrickType.ADD_PACK_TYPE,
-//                BrickType.ADD_PADDLE_TYPE,
+                BrickType.ADD_PADDLE_TYPE,
 //                BrickType.TURBO_TYPE,
 //                BrickType.EXTRA_LIFE,
 //                BrickType.DOUBLE_TYPE,
@@ -268,11 +280,33 @@ public class BrickerGameManager extends GameManager {
                 BORDER_WIDTH,
                 (int) windowDimensions.x() - BORDER_WIDTH);
 
-
         userPaddle.setCenter(
                 new Vector2(windowDimensions.x()/2,
                         (int)windowDimensions.y()-DISTANCE_PADDLE_FROM_BOTTOM));
+        userPaddle.setTag(USER_PADDLE_TAG);
         gameObjects().addGameObject(userPaddle);
+    }
+
+    public void createExtraPaddle() {
+        Renderable paddleImage = imageReader.readImage(
+                "assets/paddle.png", false);
+        GameObject extraPaddle = new ExtraPaddle(
+                Vector2.ZERO,
+                new Vector2(PADDLE_WIDTH, PADDLE_HEIGHT),
+                paddleImage,
+                inputListener,
+                BORDER_WIDTH,
+                (int) windowDimensions.x() - BORDER_WIDTH,
+                this);
+
+        extraPaddle.setCenter(
+                new Vector2(windowDimensions.x()/2, (int)(windowDimensions.y()/2)));
+        extraPaddle.setTag(EXTRA_PADDLE_TAG);
+        gameObjects().addGameObject(extraPaddle);
+    }
+
+    public GameObjectCollection getGameObjects() {
+        return gameObjects();
     }
 
     private void createAIPaddle(Vector2 windowDimensions, Renderable paddleImage) {
@@ -310,10 +344,15 @@ public class BrickerGameManager extends GameManager {
         );
     }
 
-    public void removeObject(GameObject gameObject) {
-        this.gameObjects().removeGameObject(gameObject);
+    public void removeBrick(GameObject gameObject) {
+        removeObject(gameObject);
         numBricks--;
     }
+
+    public void removeObject(GameObject gameObject) {
+        this.gameObjects().removeGameObject(gameObject);
+    }
+
 
     public static void main(String[] args) {
         new BrickerGameManager(

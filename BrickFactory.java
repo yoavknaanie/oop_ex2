@@ -1,9 +1,8 @@
 package bricker;
+import bricker.brick_strategies.*;
 import bricker.brick_strategies.BasicCollisionStrategy;
-import bricker.brick_strategies.CollisionStrategy;
-import bricker.brick_strategies.BasicCollisionStrategy;
-import bricker.brick_strategies.AddPuckStrategy;
 import bricker.gameobjects.Brick;
+import bricker.gameobjects.ExtraPaddle;
 import danogl.gui.rendering.Renderable;
 import danogl.util.Vector2;
 
@@ -28,6 +27,9 @@ public class BrickFactory {
             case ADD_PACK_TYPE:
                 return new Brick(initialLocation, brickDim, brickImage,
                         new AddPuckStrategy(brickerGameManager));
+            case ADD_PADDLE_TYPE:
+                return new Brick(initialLocation, brickDim, brickImage,
+                        new AddPaddleStrategy(brickerGameManager));
             default:
                 throw new IllegalArgumentException("Unsupported BrickType: " + brickType);
         }

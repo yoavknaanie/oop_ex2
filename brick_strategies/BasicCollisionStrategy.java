@@ -1,6 +1,5 @@
 package bricker.brick_strategies;
 import bricker.BrickerGameManager;
-import danogl.GameManager;
 import danogl.GameObject;
 
 public class BasicCollisionStrategy implements CollisionStrategy {
@@ -9,7 +8,7 @@ public class BasicCollisionStrategy implements CollisionStrategy {
         this.brickerGameManager = brickerGameManager;
     }
     public void onCollision(GameObject thisObj, GameObject otherObj){
-        brickerGameManager.removeObject(thisObj);
+        brickerGameManager.removeBrick(thisObj);
     }
 }
 

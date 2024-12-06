@@ -1,2 +1,5 @@
 
-We decided to give Brick another attributes: screenLeftBorder, screenrightBorder
+We decided to give Paddle another attributes: screenLeftBorder, screenrightBorder so the class Paddle will
+be able to prevent the paddle to get out the screen borders.
+We changed private void createUserPaddle() to public void createUserPaddle() so AddPaddleStrategy class
+would be able be able to create another paddle using its attribute of BrickerGameManager.

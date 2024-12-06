@@ -1,7 +1,6 @@
 package bricker.brick_strategies;
 import bricker.BrickerGameManager;
 import danogl.GameObject;
-import danogl.gui.rendering.Renderable;
 
 public class AddPuckStrategy implements CollisionStrategy {
     private final BrickerGameManager brickerGameManager;
@@ -11,7 +10,7 @@ public class AddPuckStrategy implements CollisionStrategy {
     }
     @Override
     public void onCollision(GameObject thisObj, GameObject otherObj) {
-        brickerGameManager.removeObject(thisObj);
+        brickerGameManager.removeBrick(thisObj);
         brickerGameManager.createPucks();
     }
 }
