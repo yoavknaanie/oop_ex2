@@ -1,5 +1,6 @@
 package bricker;
 
+import bricker.brick_strategies.TurboStrategy;
 import bricker.gameobjects.*;
 import danogl.GameManager;
 import danogl.GameObject;
@@ -16,6 +17,8 @@ import danogl.gui.UserInputListener;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class BrickerGameManager extends GameManager {
+    public static final String HEART_IMAGE_PATH ="assets/heart.png";
+    public static final String BALL_IMAGE_PATH = "assets/ball.png";
 
     public static final String BALL_TAG = "ball_tag";
     public static final String PACK_TAG = "pack_tag";
@@ -35,6 +38,11 @@ public class BrickerGameManager extends GameManager {
     private static final int HEART_HEIGHT = 20;
     private static final int PIXEL = 1;
     private static final int W_ASCII = 87;
+//    turbo consts
+    public static final float MULT_CONST = (float) 1.4;
+    private static final String RED_BALL_PATH = "assets/redball.png";
+    private static final int NO_TURBO_CONST = -1;
+    private int collisionAtStartTurbo = NO_TURBO_CONST;
     private static final int STARTING_NUM_LIVES = 3;
     private static final Renderable BORDER_RENDERABLE =
             new RectangleRenderable(new Color(80, 140, 250));
@@ -55,6 +63,8 @@ public class BrickerGameManager extends GameManager {
     private final int MAX_NUM_PUCKS = numBricks*numRows*4;
     private Puck[] puckArr = new Puck[MAX_NUM_PUCKS];
     private SoundReader soundReader;
+
+
     public ImageReader getImageReader(){
         return imageReader;
     }
@@ -107,7 +117,7 @@ public class BrickerGameManager extends GameManager {
         Vector2 location = new Vector2(BORDER_WIDTH + PIXEL,
                 windowDimensions.y() - HEART_HEIGHT);
         Renderable heartImage =
-                imageReader.readImage("assets/heart.png", true);
+                imageReader.readImage(HEART_IMAGE_PATH, true);
         Vector2 dimensions = new Vector2(HEART_WIDTH, HEART_HEIGHT);
         textOfNumberOfLives = new TextRenderable(String.format("%d", life));
         this.livesNumberObject = new GameObject(location, dimensions, textOfNumberOfLives);
@@ -148,6 +158,16 @@ public class BrickerGameManager extends GameManager {
     public void update(float deltaTime) {
         super.update(deltaTime);
         checkForGameEnd();
+        checkTurbo();
+    }
+
+    private void checkTurbo() {
+        if (collisionAtStartTurbo + 6 == ball.getCollisionCounter()) {
+            collisionAtStartTurbo = NO_TURBO_CONST;
+            Renderable ballImg = this.getImageReader().readImage(BALL_IMAGE_PATH, true);
+            ball.renderer().setRenderable(ballImg);
+            ball.setVelocity(ball.getVelocity().mult(1/MULT_CONST));
+        }
     }
 
     private void checkForGameEnd() {
@@ -185,7 +205,7 @@ public class BrickerGameManager extends GameManager {
 
     private void createBall() {
         Renderable ballImage =
-                imageReader.readImage("assets/ball.png", true);
+                imageReader.readImage(BALL_IMAGE_PATH, true);
         Sound collisionSound = soundReader.readSound("assets/blop.wav");
         ball = new Ball(
                 Vector2.ZERO, new Vector2(BALL_RADIUS, BALL_RADIUS), ballImage, collisionSound);
@@ -233,7 +253,7 @@ public class BrickerGameManager extends GameManager {
         BrickType[] samplingArray = new BrickType[] {
                 BrickType.ADD_PACK_TYPE,
                 BrickType.ADD_PADDLE_TYPE,
-//                BrickType.TURBO_TYPE,
+                BrickType.TURBO_TYPE,
 //                BrickType.EXTRA_LIFE,
 //                BrickType.DOUBLE_TYPE,
                 BrickType.BASIC_TYPE,
@@ -242,7 +262,8 @@ public class BrickerGameManager extends GameManager {
                 BrickType.BASIC_TYPE,
                 BrickType.BASIC_TYPE,
         };
-        return samplingArray[randomNumber];
+//        return samplingArray[randomNumber]; todo uncomment
+        return BrickType.TURBO_TYPE;
     }
 
     private void createBricks() {
@@ -358,5 +379,24 @@ public class BrickerGameManager extends GameManager {
         new BrickerGameManager(
                 "Bricker",
                 new Vector2(700, 500)).run();
+    }
+
+    public GameObject findObject(String tag) {
+        for (GameObject obj: gameObjects()) {
+            if (tag.equals(obj.getTag())) {
+                return obj;
+            }
+        }
+        return null;
+    }
+
+    public void startTurbo() {
+        if (collisionAtStartTurbo != NO_TURBO_CONST)
+        {
+            ball.setVelocity(ball.getVelocity().mult(MULT_CONST));
+            Renderable redBallImage = getImageReader().readImage(RED_BALL_PATH, true);
+            ball.renderer().setRenderable(redBallImage);
+            collisionAtStartTurbo = this.ball.getCollisionCounter();
+        }
     }
 }

@@ -30,6 +30,9 @@ public class BrickFactory {
             case ADD_PADDLE_TYPE:
                 return new Brick(initialLocation, brickDim, brickImage,
                         new AddPaddleStrategy(brickerGameManager));
+            case TURBO_TYPE:
+                return new Brick(initialLocation, brickDim, brickImage,
+                        new TurboStrategy(brickerGameManager));
             default:
                 throw new IllegalArgumentException("Unsupported BrickType: " + brickType);
         }

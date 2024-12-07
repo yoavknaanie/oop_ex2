@@ -1,5 +1,6 @@
 package bricker.gameobjects;
 
+import bricker.brick_strategies.CollisionStrategy;
 import danogl.GameObject;
 import danogl.collisions.Collision;
 //import danogl.gocollection.Collision;
@@ -10,6 +11,7 @@ import danogl.util.Vector2;
 public class Ball extends GameObject {
     private Sound collisionSound;
     private int collisionsCounter = 0;
+    private int turboCollisions = -1;
 
     /**
      * Construct a new GameObject instance.
@@ -32,6 +34,13 @@ public class Ball extends GameObject {
         setVelocity(newVel);
         collisionSound.play();
         collisionsCounter++;
+        if (turboCollisions > 0) {
+            turboCollisions--;
+            if (turboCollisions == 0) {
+//                todo dont have accesss to turboStrategy
+            }
+        }
+
     }
 
     public int getCollisionCounter() {
