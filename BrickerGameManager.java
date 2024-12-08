@@ -33,15 +33,17 @@ public class BrickerGameManager extends GameManager {
     private static final int BALL_RADIUS = 35;
     private static final int PUCK_RADIUS = (int) Math.ceil(0.75 * BALL_RADIUS);
     private static final float BALL_SPEED = 350;
+//    private static final float BALL_SPEED = 200;
     private static final int BRICK_HEIGHT = 15;
-    private static final int HEART_WIDTH = 15;
-    private static final int HEART_HEIGHT = 20;
+    public static final int HEART_WIDTH = 15;
+    public static final int HEART_HEIGHT = 20;
+    public static final Vector2 HEART_DIM = new Vector2(HEART_WIDTH, HEART_HEIGHT);
     private static final int PIXEL = 1;
     private static final int W_ASCII = 87;
 //    turbo consts
     public static final float MULT_CONST = (float) 1.4;
     private static final String RED_BALL_PATH = "assets/redball.png";
-    private static final int NO_TURBO_CONST = -1;
+    private static final int NO_TURBO_CONST = -10;
     private int collisionAtStartTurbo = NO_TURBO_CONST;
     private static final int STARTING_NUM_LIVES = 3;
     private static final Renderable BORDER_RENDERABLE =
@@ -214,7 +216,7 @@ public class BrickerGameManager extends GameManager {
         gameObjects().addGameObject(ball);
     }
 // todo make sure there are no more than 4 packs
-    public void createPucks() {
+    public void createPucks(Vector2 brickLocation) {
         Renderable puckImage =
                 imageReader.readImage("assets/mockBall.png", true);
         Sound collisionSound = soundReader.readSound("assets/blop.wav");
@@ -224,6 +226,7 @@ public class BrickerGameManager extends GameManager {
             setBall(puck,true);
             puck.setTag(PACK_TAG);
             gameObjects().addGameObject(puck);
+            puck.setCenter(brickLocation);
         }
     }
 
@@ -262,8 +265,8 @@ public class BrickerGameManager extends GameManager {
                 BrickType.BASIC_TYPE,
                 BrickType.BASIC_TYPE,
         };
-//        return samplingArray[randomNumber]; todo uncomment
-        return BrickType.TURBO_TYPE;
+        return samplingArray[randomNumber];
+//        return BrickType.TURBO_TYPE;
     }
 
     private void createBricks() {
@@ -365,11 +368,15 @@ public class BrickerGameManager extends GameManager {
         );
     }
 
+
+
     public void removeBrick(GameObject gameObject) {
         removeObject(gameObject);
         numBricks--;
     }
-
+    public void addGameObject(GameObject obj) {
+        gameObjects().addGameObject(obj);
+    }
     public void removeObject(GameObject gameObject) {
         this.gameObjects().removeGameObject(gameObject);
     }
@@ -391,7 +398,7 @@ public class BrickerGameManager extends GameManager {
     }
 
     public void startTurbo() {
-        if (collisionAtStartTurbo != NO_TURBO_CONST)
+        if (collisionAtStartTurbo == NO_TURBO_CONST)
         {
             ball.setVelocity(ball.getVelocity().mult(MULT_CONST));
             Renderable redBallImage = getImageReader().readImage(RED_BALL_PATH, true);
@@ -399,4 +406,10 @@ public class BrickerGameManager extends GameManager {
             collisionAtStartTurbo = this.ball.getCollisionCounter();
         }
     }
+
+    public Renderable getHeartImage() {
+        return this.getImageReader().readImage(HEART_IMAGE_PATH, false);
+    }
+
+
 }

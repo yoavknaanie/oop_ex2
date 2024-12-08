@@ -10,7 +10,7 @@ public class AddPuckStrategy implements CollisionStrategy {
     }
     @Override
     public void onCollision(GameObject thisObj, GameObject otherObj) {
+        brickerGameManager.createPucks(thisObj.getCenter());
         brickerGameManager.removeBrick(thisObj);
-        brickerGameManager.createPucks();
     }
 }
