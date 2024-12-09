@@ -1,6 +1,12 @@
 yoav_kn,
 211723937,
 
+1. We decided to use the 2nd strategy, we sent an instance of BrickerGameManager to the Brick calss
+and used the game manger public method removeBrick(GameObject gameObject) to remove a brick from the game.
+The advantages of this design is encapsulation - the bricker game manager is the only class who adds
+and removes objects to the game.
+2.
+
 We decided to give Paddle another attributes: screenLeftBorder, screenrightBorder so the class Paddle will
 be able to prevent the paddle to get out the screen borders.
 We changed private void createUserPaddle() to public void createUserPaddle() so AddPaddleStrategy class

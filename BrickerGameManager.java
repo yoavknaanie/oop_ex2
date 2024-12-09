@@ -41,7 +41,7 @@ public class BrickerGameManager extends GameManager {
     private static final int PADDLE_WIDTH = 100;
     private static final int BALL_RADIUS = 35;
     private static final int PUCK_RADIUS = (int) Math.ceil(0.75 * BALL_RADIUS);
-    private static final float BALL_SPEED = 250;
+    private static final float BALL_SPEED = 150;
 //    private static final float BALL_SPEED = 200;
     private static final int BRICK_HEIGHT = 15;
     public static final int HEART_WIDTH = 15;
@@ -55,6 +55,7 @@ public class BrickerGameManager extends GameManager {
     private static final int NO_TURBO_CONST = -10;
     private static final int MINUS_BRICK = -1;
     private static final String BLOP_SOUND_PATH = "assets/blop.wav";
+    private static final String BACKGROUND_IMAGE_PATH = "assets/DARK_BG2_small.jpeg";
     private int collisionAtStartTurbo = NO_TURBO_CONST;
     private static final int STARTING_NUM_LIVES = 3;
     private static final Renderable BORDER_RENDERABLE =
@@ -83,7 +84,8 @@ public class BrickerGameManager extends GameManager {
      * @param numBricksPerRow  The number of bricks in a single row.
      * @param numRows          The number of rows of bricks.
      */
-    public BrickerGameManager(String windowTitle, Vector2 windowDimensions, int numBricksPerRow, int numRows) {
+    public BrickerGameManager(String windowTitle, Vector2 windowDimensions,
+                              int numBricksPerRow, int numRows) {
         super(windowTitle, windowDimensions);
         this.numBricksPerRow = numBricksPerRow;
         this.numRows = numRows;
@@ -127,6 +129,7 @@ public class BrickerGameManager extends GameManager {
         super.initializeGame(imageReader, soundReader, inputListener, windowController);
         windowDimensions = windowController.getWindowDimensions();
         this.inputListener = inputListener;
+        setBackround();
         //create ball
         createBall();
         //create paddle
@@ -137,6 +140,14 @@ public class BrickerGameManager extends GameManager {
         createBorders(windowDimensions);
         // init lives
         initLives();
+    }
+
+    private void setBackround() {
+        Renderable backgroundImage =
+        imageReader.readImage(BACKGROUND_IMAGE_PATH, false);
+        GameObject background = new GameObject(Vector2.ZERO, new Vector2(windowDimensions.x(),
+        windowDimensions.y()), backgroundImage);
+        gameObjects().addGameObject(background, Layer.BACKGROUND);
     }
 
 
@@ -324,7 +335,6 @@ public class BrickerGameManager extends GameManager {
         };
         int randomNumber = ThreadLocalRandom.current().nextInt(samplingArray.length);
         return samplingArray[randomNumber];
-//        return BrickType.DOUBLE_TYPE;
     }
 
     private void createBricks() {
