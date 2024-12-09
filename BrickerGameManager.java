@@ -17,21 +17,24 @@ import java.util.Random;
 import danogl.gui.UserInputListener;
 import java.util.concurrent.ThreadLocalRandom;
 
-// todo: the last brick disapear
-// todo: make sure extraPaddle disapear after 4 collissions
-// todo  Checks the puck is out from the window bounds.
 
-// double brick
-
+/**
+ * The BrickerGameManager class manages the game logic and objects for the Bricker game.
+ * It extends the GameManager class, utilizing the danogl framework to handle initialization,
+ * updates, and rendering of game objects. This class is responsible for creating the main
+ * components of the game, such as the ball, paddles, bricks, and borders, and for managing
+ * game state transitions like winning or losing.
+ */
 public class BrickerGameManager extends GameManager {
     public static final String HEART_IMAGE_PATH ="assets/heart.png";
     public static final String BALL_IMAGE_PATH = "assets/ball.png";
+    public static final String PUCK_IMAGE_PATH = "assets/mockBall.png";
     public static final String BALL_TAG = "ball_tag";
     public static final String PACK_TAG = "pack_tag";
     public static final String EXTRA_PADDLE_TAG = "extra_paddle";
     public static final String USER_PADDLE_TAG = "user_paddle";
     public static final String BRICK_TAG = "brick_tag";
-    private static final int DISTRIBUTION_CONST = 6;
+    private static final int TWO = 2;
     private static final int DISTANCE_PADDLE_FROM_BOTTOM = 30;
     private static final int BORDER_WIDTH = 20;
     private static final int PADDLE_HEIGHT = 20;
@@ -51,6 +54,7 @@ public class BrickerGameManager extends GameManager {
     private static final String RED_BALL_PATH = "assets/redball.png";
     private static final int NO_TURBO_CONST = -10;
     private static final int MINUS_BRICK = -1;
+    private static final String BLOP_SOUND_PATH = "assets/blop.wav";
     private int collisionAtStartTurbo = NO_TURBO_CONST;
     private static final int STARTING_NUM_LIVES = 3;
     private static final Renderable BORDER_RENDERABLE =
@@ -69,13 +73,16 @@ public class BrickerGameManager extends GameManager {
     private ImageReader imageReader;
     private TextRenderable textOfNumberOfLives;
     private final int MAX_NUM_PUCKS = numBricksPerRow*numRows*4;
-    private Puck[] puckArr = new Puck[MAX_NUM_PUCKS];
+    private Ball[] puckArr = new Ball[MAX_NUM_PUCKS];
     private SoundReader soundReader;
 
-
-    public ImageReader getImageReader(){
-        return imageReader;
-    }
+    /**
+     * Initializes the game manager with specific parameters.
+     * @param windowTitle      The title of the game window.
+     * @param windowDimensions The dimensions of the game window.
+     * @param numBricksPerRow  The number of bricks in a single row.
+     * @param numRows          The number of rows of bricks.
+     */
     public BrickerGameManager(String windowTitle, Vector2 windowDimensions, int numBricksPerRow, int numRows) {
         super(windowTitle, windowDimensions);
         this.numBricksPerRow = numBricksPerRow;
@@ -83,11 +90,31 @@ public class BrickerGameManager extends GameManager {
         this.numBricks = new danogl.util.Counter(numBricksPerRow * numRows);
     }
 
+    /**
+     * Returns the game's image reader.
+     * @return ImageReader instance used for loading images in the game.
+     */
+    public ImageReader getImageReader(){
+        return imageReader;
+    }
+
+    /**
+     * Returns the game's image reader.
+     * @return ImageReader instance used for loading images in the game.
+     */
     public BrickerGameManager(String windowTitle, Vector2 windowDimensions) {
         super(windowTitle, windowDimensions);
         this.numBricks = new danogl.util.Counter(numBricksPerRow * numRows);
     }
-
+    /**
+     * Initializes the game state and sets up all required game objects.
+     * This method is responsible for creating and initializing the game window,
+     * ball, paddles, bricks, borders, and lives.
+     * @param imageReader      The image reader for loading images.
+     * @param soundReader      The sound reader for playing sounds.
+     * @param inputListener    The input listener for capturing user input.
+     * @param windowController The window controller for managing the game window.
+     */
     @Override
     public void initializeGame(ImageReader imageReader,
                                SoundReader soundReader,
@@ -114,7 +141,6 @@ public class BrickerGameManager extends GameManager {
 
 
     private void initLives() {
-//        todo export to another class
         Vector2 location = new Vector2(BORDER_WIDTH + PIXEL,
                 windowDimensions.y() - HEART_HEIGHT);
         Renderable heartImage =
@@ -162,7 +188,10 @@ public class BrickerGameManager extends GameManager {
         }
     }
 
-
+    /**
+     * Updates the game state on every frame.
+     * @param deltaTime The time elapsed since the last frame, in seconds.
+     */
     @Override
     public void update(float deltaTime) {
         super.update(deltaTime);
@@ -236,12 +265,18 @@ public class BrickerGameManager extends GameManager {
         ball.setTag(BALL_TAG);
         gameObjects().addGameObject(ball);
     }
+
+    /**
+     * Creates two pucks at the specified brick location and adds them to the game objects.
+     * Pucks are initialized with a unique angle of motion and collision properties.
+     * @param brickLocation The location where the pucks are created.
+     */
     public void createPucks(Vector2 brickLocation) {
         Renderable puckImage =
-                imageReader.readImage("assets/mockBall.png", true);
-        Sound collisionSound = soundReader.readSound("assets/blop.wav");
+                imageReader.readImage(PUCK_IMAGE_PATH, true);
+        Sound collisionSound = soundReader.readSound(BLOP_SOUND_PATH);
         for (int i =0; i < 2; i++) {
-            Puck puck = new Puck(
+            Ball puck = new Ball(
                     Vector2.ZERO, new Vector2(PUCK_RADIUS, PUCK_RADIUS), puckImage, collisionSound);
             setBall(puck,true);
             puck.setTag(PACK_TAG);
@@ -270,7 +305,10 @@ public class BrickerGameManager extends GameManager {
         }
         ball.setVelocity(new Vector2(ballVelX, ballVelY));
     }
-
+    /**
+     * Generates a random brick type with a weighted probability.
+     * @return A randomly selected BrickType.
+     */
     public static BrickType getRandomBrickType() {
         BrickType[] samplingArray = new BrickType[] {
                 BrickType.ADD_PACK_TYPE,
@@ -295,7 +333,7 @@ public class BrickerGameManager extends GameManager {
         Vector2 location = Vector2.ZERO;
         location = location.add(new Vector2(BORDER_WIDTH + PIXEL, BORDER_WIDTH+PIXEL));
         float distanceBetweenBricks =
-                (windowDimensions.x() - ((BORDER_WIDTH+PIXEL)*2)) / this.numBricksPerRow;
+                (windowDimensions.x() - ((BORDER_WIDTH+PIXEL)*TWO)) / this.numBricksPerRow;
         // todo 2 magic_number?
         Vector2 brickDim = new Vector2(distanceBetweenBricks - PIXEL, BRICK_HEIGHT);
         CollisionStrategyFactory collisionStrategyFactory =
@@ -333,7 +371,11 @@ public class BrickerGameManager extends GameManager {
         userPaddle.setTag(USER_PADDLE_TAG);
         gameObjects().addGameObject(userPaddle);
     }
-
+    /**
+     * Creates an extra paddle in the game and adds it to the game objects.
+     * The extra paddle is positioned at the center of the screen and has the same
+     * properties as the user's main paddle.
+     */
     public void createExtraPaddle() {
         Renderable paddleImage = imageReader.readImage(
                 "assets/paddle.png", false);
@@ -351,22 +393,15 @@ public class BrickerGameManager extends GameManager {
         extraPaddle.setTag(EXTRA_PADDLE_TAG);
         gameObjects().addGameObject(extraPaddle);
     }
-
+    /**
+     * Retrieves the collection of all game objects in the game.
+     * @return The GameObjectCollection containing all active game objects.
+     */
     public GameObjectCollection getGameObjects() {
         return gameObjects();
     }
 
-    private void createAIPaddle(Vector2 windowDimensions, Renderable paddleImage) {
-        GameObject aiPaddle = new AIPaddle(
-                Vector2.ZERO, new Vector2(PADDLE_WIDTH, PADDLE_HEIGHT), paddleImage,
-                ball);
-        aiPaddle.setCenter(
-                new Vector2(windowDimensions.x()/2, 30));
-        gameObjects().addGameObject(aiPaddle);
-    }
-
     private void createBorders(Vector2 windowDimensions) {
-        // wall border:
         gameObjects().addGameObject(
                 new GameObject(
                         Vector2.ZERO,
@@ -390,34 +425,37 @@ public class BrickerGameManager extends GameManager {
                 Layer.STATIC_OBJECTS
         );
     }
-
+    /**
+     * Removes a brick from the game and updates the brick counter.
+     * If the brick is successfully removed, the total number of bricks is decremented.
+     * @param gameObject The brick game object to be removed.
+     */
     public void removeBrick(GameObject gameObject) {
         if (removeObject(gameObject)){
             numBricks.increaseBy(MINUS_BRICK);
-            System.out.println(numBricks.value());
         }
     }
-
+    /**
+     * Adds a game object to the game at the specified layer.
+     * @param obj The game object to be added.
+     * @param layer The layer in which the game object will be rendered and updated.
+     */
     public void addGameObject(GameObject obj, int layer) {
         gameObjects().addGameObject(obj, layer);
     }
-
+    /**
+     * removes an object. return
+     * @return  false if the object has already been removed
+     */
     public boolean removeObject(GameObject gameObject) {
         return this.gameObjects().removeGameObject(gameObject);
     }
 
-
-
-// todo erease
-    public GameObject findObject(String tag) {
-        for (GameObject obj: gameObjects()) {
-            if (tag.equals(obj.getTag())) {
-                return obj;
-            }
-        }
-        return null;
-    }
-
+    /**
+     * Activates the turbo mode for the ball.
+     * This method increases the ball's velocity by MULT_CONST multiplier and changes its appearance
+     * to indicate turbo mode. Turbo mode is triggered only if it is not already active.
+     */
     public void startTurbo() {
         if (collisionAtStartTurbo == NO_TURBO_CONST)
         {
@@ -427,11 +465,17 @@ public class BrickerGameManager extends GameManager {
             collisionAtStartTurbo = this.ball.getCollisionCounter();
         }
     }
-
+    /**
+     * getter for heart image
+     * @return Renderable return heart image
+     */
     public Renderable getHeartImage() {
         return this.getImageReader().readImage(HEART_IMAGE_PATH, false);
     }
-
+    /**
+     * Starts the game loop for the Bricker game.
+     * @param args Command-line arguments.
+     */
     public static void main(String[] args) {
         new BrickerGameManager(
                 "Bricker",

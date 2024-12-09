@@ -1,5 +1,8 @@
 package bricker;
-
+/**
+ * The BrickType enum defines the different types of bricks that can exist in the game.
+ * Each type corresponds to a specific behavior or power-up associated with the brick.
+ */
 public enum BrickType {
 
     ADD_PACK_TYPE,
