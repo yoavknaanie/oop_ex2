@@ -33,6 +33,9 @@ public class BrickFactory {
             case TURBO_TYPE:
                 return new Brick(initialLocation, brickDim, brickImage,
                         new TurboStrategy(brickerGameManager));
+            case EXTRA_LIFE:
+                return new Brick(initialLocation, brickDim, brickImage,
+                        new AddLifeStrategy(brickerGameManager));
             default:
                 throw new IllegalArgumentException("Unsupported BrickType: " + brickType);
         }

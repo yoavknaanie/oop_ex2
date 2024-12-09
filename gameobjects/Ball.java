@@ -1,5 +1,7 @@
 package bricker.gameobjects;
 
+import bricker.brick_strategies.AddLifeStrategy;
+import bricker.brick_strategies.BasicCollisionStrategy;
 import bricker.brick_strategies.CollisionStrategy;
 import danogl.GameObject;
 import danogl.collisions.Collision;
@@ -30,17 +32,16 @@ public class Ball extends GameObject {
     @Override
     public void onCollisionEnter(GameObject other, Collision collision) {
         super.onCollisionEnter(other, collision);
+        if (other.getTag().equals(AddLifeStrategy.FALLING_HEART_TAG)){
+            return;
+        }
         Vector2 newVel = getVelocity().flipped(collision.getNormal());
         setVelocity(newVel);
         collisionSound.play();
         collisionsCounter++;
         if (turboCollisions > 0) {
             turboCollisions--;
-            if (turboCollisions == 0) {
-//                todo dont have accesss to turboStrategy
-            }
         }
-
     }
 
     public int getCollisionCounter() {

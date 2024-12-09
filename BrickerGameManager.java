@@ -1,6 +1,7 @@
 package bricker;
 
-import bricker.brick_strategies.TurboStrategy;
+import bricker.brick_strategies.CollisionStrategy;
+import bricker.brick_strategies.CollisionStrategyFactory;
 import bricker.gameobjects.*;
 import danogl.GameManager;
 import danogl.GameObject;
@@ -16,23 +17,28 @@ import java.util.Random;
 import danogl.gui.UserInputListener;
 import java.util.concurrent.ThreadLocalRandom;
 
+// todo: the last brick disapear
+// todo: make sure extraPaddle disapear after 4 collissions
+// todo  Checks the puck is out from the window bounds.
+
+// double brick
+
 public class BrickerGameManager extends GameManager {
     public static final String HEART_IMAGE_PATH ="assets/heart.png";
     public static final String BALL_IMAGE_PATH = "assets/ball.png";
-
     public static final String BALL_TAG = "ball_tag";
     public static final String PACK_TAG = "pack_tag";
-
     public static final String EXTRA_PADDLE_TAG = "extra_paddle";
-    private static final String USER_PADDLE_TAG = "user_paddle";
+    public static final String USER_PADDLE_TAG = "user_paddle";
+    public static final String BRICK_TAG = "brick_tag";
     private static final int DISTRIBUTION_CONST = 6;
     private static final int DISTANCE_PADDLE_FROM_BOTTOM = 30;
-    private static final int BORDER_WIDTH = 10;
+    private static final int BORDER_WIDTH = 20;
     private static final int PADDLE_HEIGHT = 20;
     private static final int PADDLE_WIDTH = 100;
     private static final int BALL_RADIUS = 35;
     private static final int PUCK_RADIUS = (int) Math.ceil(0.75 * BALL_RADIUS);
-    private static final float BALL_SPEED = 350;
+    private static final float BALL_SPEED = 250;
 //    private static final float BALL_SPEED = 200;
     private static final int BRICK_HEIGHT = 15;
     public static final int HEART_WIDTH = 15;
@@ -44,11 +50,11 @@ public class BrickerGameManager extends GameManager {
     public static final float MULT_CONST = (float) 1.4;
     private static final String RED_BALL_PATH = "assets/redball.png";
     private static final int NO_TURBO_CONST = -10;
+    private static final int MINUS_BRICK = -1;
     private int collisionAtStartTurbo = NO_TURBO_CONST;
     private static final int STARTING_NUM_LIVES = 3;
     private static final Renderable BORDER_RENDERABLE =
             new RectangleRenderable(new Color(80, 140, 250));
-    private static final int PUCKS_NUM = 2;
     private Ball ball;
     private Vector2 windowDimensions;
     private WindowController windowController;
@@ -58,11 +64,11 @@ public class BrickerGameManager extends GameManager {
     private static final int MAX_LIVES = 4;
     private GameObject[] life_array = new GameObject[MAX_LIVES];
     private GameObject livesNumberObject;
-    private int numBricks = numBricksPerRow*numRows;
+    private danogl.util.Counter numBricks;
     private UserInputListener inputListener;
     private ImageReader imageReader;
     private TextRenderable textOfNumberOfLives;
-    private final int MAX_NUM_PUCKS = numBricks*numRows*4;
+    private final int MAX_NUM_PUCKS = numBricksPerRow*numRows*4;
     private Puck[] puckArr = new Puck[MAX_NUM_PUCKS];
     private SoundReader soundReader;
 
@@ -74,11 +80,12 @@ public class BrickerGameManager extends GameManager {
         super(windowTitle, windowDimensions);
         this.numBricksPerRow = numBricksPerRow;
         this.numRows = numRows;
-        this.numBricks = numBricksPerRow * numRows;
+        this.numBricks = new danogl.util.Counter(numBricksPerRow * numRows);
     }
 
     public BrickerGameManager(String windowTitle, Vector2 windowDimensions) {
         super(windowTitle, windowDimensions);
+        this.numBricks = new danogl.util.Counter(numBricksPerRow * numRows);
     }
 
     @Override
@@ -95,22 +102,14 @@ public class BrickerGameManager extends GameManager {
         this.inputListener = inputListener;
         //create ball
         createBall();
-        //create paddles
+        //create paddle
         createUserPaddle();
-        //createAIPaddle(windowDimensions, paddleImage);
         //create bricks
         createBricks();
         //create borders
         createBorders(windowDimensions);
         // init lives
         initLives();
-
-//        check
-//        System.out.println(gameObjects().iterator().getClass());
-//        for (GameObject obj: gameObjects().objectsInLayer(Layer.DEFAULT)){
-//            System.out.println("here");
-//            System.out.println(obj.getTag());
-//        }
     }
 
 
@@ -141,6 +140,14 @@ public class BrickerGameManager extends GameManager {
         }
     }
 
+    public void addLife() {
+        if (life <= 3) {
+            removeLives();
+            life++;
+            initLives();
+        }
+    }
+
     private void setTextColor(TextRenderable numberOfLives) {
         switch (life) {
             case 3:
@@ -161,6 +168,20 @@ public class BrickerGameManager extends GameManager {
         super.update(deltaTime);
         checkForGameEnd();
         checkTurbo();
+        checkPucks();
+    }
+
+    private void checkPucks() {
+        for(Ball puck: puckArr) {
+            if (puck != null) {
+                if (puck.getCenter().x() > windowDimensions.x() ||
+                        puck.getCenter().x() < 0 ||
+                        puck.getCenter().y() > windowDimensions.y() ||
+                        puck.getCenter().y() < 0) {
+                    removeObject(puck);
+                }
+            }
+        }
     }
 
     private void checkTurbo() {
@@ -176,7 +197,7 @@ public class BrickerGameManager extends GameManager {
         double ballHeight = ball.getCenter().y();
 
         String prompt = "";
-        if(numBricks == 0 || inputListener.isKeyPressed(W_ASCII)) {
+        if(numBricks.value() <= 0 || inputListener.isKeyPressed(W_ASCII)) {
             //we win
             prompt = "You win!";
         }
@@ -197,7 +218,7 @@ public class BrickerGameManager extends GameManager {
             prompt += " Play again?";
             if(windowController.openYesNoDialog(prompt)) {
                 life = STARTING_NUM_LIVES;
-                numBricks = numBricksPerRow*numRows;
+                numBricks = new danogl.util.Counter(numBricksPerRow*numRows);
                 windowController.resetGame();
             }
             else
@@ -215,7 +236,6 @@ public class BrickerGameManager extends GameManager {
         ball.setTag(BALL_TAG);
         gameObjects().addGameObject(ball);
     }
-// todo make sure there are no more than 4 packs
     public void createPucks(Vector2 brickLocation) {
         Renderable puckImage =
                 imageReader.readImage("assets/mockBall.png", true);
@@ -251,22 +271,22 @@ public class BrickerGameManager extends GameManager {
         ball.setVelocity(new Vector2(ballVelX, ballVelY));
     }
 
-    private static BrickType getRandomBrickType() {
-        int randomNumber = ThreadLocalRandom.current().nextInt(DISTRIBUTION_CONST);
+    public static BrickType getRandomBrickType() {
         BrickType[] samplingArray = new BrickType[] {
                 BrickType.ADD_PACK_TYPE,
                 BrickType.ADD_PADDLE_TYPE,
                 BrickType.TURBO_TYPE,
-//                BrickType.EXTRA_LIFE,
-//                BrickType.DOUBLE_TYPE,
+                BrickType.EXTRA_LIFE,
+                BrickType.DOUBLE_TYPE,
                 BrickType.BASIC_TYPE,
                 BrickType.BASIC_TYPE,
                 BrickType.BASIC_TYPE,
                 BrickType.BASIC_TYPE,
                 BrickType.BASIC_TYPE,
         };
+        int randomNumber = ThreadLocalRandom.current().nextInt(samplingArray.length);
         return samplingArray[randomNumber];
-//        return BrickType.TURBO_TYPE;
+//        return BrickType.DOUBLE_TYPE;
     }
 
     private void createBricks() {
@@ -278,14 +298,17 @@ public class BrickerGameManager extends GameManager {
                 (windowDimensions.x() - ((BORDER_WIDTH+PIXEL)*2)) / this.numBricksPerRow;
         // todo 2 magic_number?
         Vector2 brickDim = new Vector2(distanceBetweenBricks - PIXEL, BRICK_HEIGHT);
-
-        BrickFactory brickFactory = new BrickFactory(brickDim, brickImage, this);
+        CollisionStrategyFactory collisionStrategyFactory =
+                new CollisionStrategyFactory(this);
         BrickType brickType;
+        CollisionStrategy collisionStrategy;
+
         for (int curRow=0; curRow < this.numRows; curRow++) {
             for (int curBrick=0; curBrick < this.numBricksPerRow; curBrick++) {
                 brickType = getRandomBrickType();
-                Brick brick = brickFactory.getBrick(brickType);
-                brick.setTopLeftCorner(location);
+                collisionStrategy = collisionStrategyFactory.getCollisionStrategy(brickType);
+                Brick brick = new Brick(location, brickDim, brickImage, collisionStrategy);
+//                brick.setTopLeftCorner(location);
                 gameObjects().addGameObject(brick);
                 location = location.add(new Vector2(distanceBetweenBricks, 0));
             }
@@ -368,26 +391,24 @@ public class BrickerGameManager extends GameManager {
         );
     }
 
-
-
     public void removeBrick(GameObject gameObject) {
-        removeObject(gameObject);
-        numBricks--;
+        if (removeObject(gameObject)){
+            numBricks.increaseBy(MINUS_BRICK);
+            System.out.println(numBricks.value());
+        }
     }
-    public void addGameObject(GameObject obj) {
-        gameObjects().addGameObject(obj);
+
+    public void addGameObject(GameObject obj, int layer) {
+        gameObjects().addGameObject(obj, layer);
     }
-    public void removeObject(GameObject gameObject) {
-        this.gameObjects().removeGameObject(gameObject);
+
+    public boolean removeObject(GameObject gameObject) {
+        return this.gameObjects().removeGameObject(gameObject);
     }
 
 
-    public static void main(String[] args) {
-        new BrickerGameManager(
-                "Bricker",
-                new Vector2(700, 500)).run();
-    }
 
+// todo erease
     public GameObject findObject(String tag) {
         for (GameObject obj: gameObjects()) {
             if (tag.equals(obj.getTag())) {
@@ -411,5 +432,9 @@ public class BrickerGameManager extends GameManager {
         return this.getImageReader().readImage(HEART_IMAGE_PATH, false);
     }
 
-
+    public static void main(String[] args) {
+        new BrickerGameManager(
+                "Bricker",
+                new Vector2(700, 500)).run();
+    }
 }

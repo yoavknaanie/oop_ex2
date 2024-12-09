@@ -1,3 +1,5 @@
+yoav_kn,
+211723937,
 
 We decided to give Paddle another attributes: screenLeftBorder, screenrightBorder so the class Paddle will
 be able to prevent the paddle to get out the screen borders.

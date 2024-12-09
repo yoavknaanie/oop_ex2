@@ -24,13 +24,6 @@ public class Brick extends GameObject {
 
     @Override
     public boolean shouldCollideWith(GameObject other) {
-        return !(other instanceof Brick); // todo find another implemantation
+        return !(other.getTag().equals(BrickerGameManager.BRICK_TAG));
     }
-
-//    public void onCollisionEnter(GameObject other, Collision collision) {
-//        super.onCollisionEnter(other, collision);
-//        Vector2 newVel = getVelocity().flipped(collision.getNormal());
-//        setVelocity(newVel);
-//        collisionSound.play();
-//    }
 }

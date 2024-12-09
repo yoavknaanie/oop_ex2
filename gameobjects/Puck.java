@@ -18,4 +18,3 @@ public class Puck extends Ball{
         super(topLeftCorner, dimensions, renderable, collisionSound);
     }
 }
-// the pack should get created in the center of the brick

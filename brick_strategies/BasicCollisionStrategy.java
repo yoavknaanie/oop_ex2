@@ -1,5 +1,6 @@
 package bricker.brick_strategies;
 import bricker.BrickerGameManager;
+import bricker.gameobjects.FallingHeart;
 import danogl.GameObject;
 
 public class BasicCollisionStrategy implements CollisionStrategy {

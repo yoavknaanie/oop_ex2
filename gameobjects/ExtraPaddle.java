@@ -10,7 +10,8 @@ import danogl.util.Vector2;
 
 public class ExtraPaddle extends UserPaddle{
     private static final int INITIAL_NUMBER_OF_HITS = 4;
-    private int hits = 4;
+    private static final int MINUS_HIT = -1;
+    private danogl.util.Counter hits = new danogl.util.Counter(INITIAL_NUMBER_OF_HITS);
     private final BrickerGameManager brickerGameManager;
 
     public ExtraPaddle(Vector2 topLeftCorner, Vector2 dimensions,
@@ -25,14 +26,14 @@ public class ExtraPaddle extends UserPaddle{
         super.onCollisionEnter(other, collision);
         if (other.getTag().equals(brickerGameManager.PACK_TAG) ||
                 other.getTag().equals(brickerGameManager.BALL_TAG)) {
-            if (hits == 1)
+            if (hits.value() == 1)
                 brickerGameManager.removeObject(this);
             else
-                hits--;
+                hits.increaseBy(MINUS_HIT);
         }
     }
 
-    public void resetHits(){
-        hits = INITIAL_NUMBER_OF_HITS;
+    public void resetHits() {
+        hits = new danogl.util.Counter(INITIAL_NUMBER_OF_HITS);
     }
 }
