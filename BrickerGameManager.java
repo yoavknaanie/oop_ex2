@@ -41,7 +41,7 @@ public class BrickerGameManager extends GameManager {
     private static final int PADDLE_WIDTH = 100;
     private static final int BALL_RADIUS = 35;
     private static final int PUCK_RADIUS = (int) Math.ceil(0.75 * BALL_RADIUS);
-    private static final float BALL_SPEED = 150;
+    private static final float BALL_SPEED = 300;
 //    private static final float BALL_SPEED = 200;
     private static final int BRICK_HEIGHT = 15;
     public static final int HEART_WIDTH = 15;
@@ -56,6 +56,7 @@ public class BrickerGameManager extends GameManager {
     private static final int MINUS_BRICK = -1;
     private static final String BLOP_SOUND_PATH = "assets/blop.wav";
     private static final String BACKGROUND_IMAGE_PATH = "assets/DARK_BG2_small.jpeg";
+    private static final int TURBO_HITS_NUMBER = 6;
     private int collisionAtStartTurbo = NO_TURBO_CONST;
     private static final int STARTING_NUM_LIVES = 3;
     private static final Renderable BORDER_RENDERABLE =
@@ -76,6 +77,7 @@ public class BrickerGameManager extends GameManager {
     private final int MAX_NUM_PUCKS = numBricksPerRow*numRows*4;
     private Ball[] puckArr = new Ball[MAX_NUM_PUCKS];
     private SoundReader soundReader;
+    private ExtraPaddle extraPaddle;
 
     /**
      * Initializes the game manager with specific parameters.
@@ -225,7 +227,7 @@ public class BrickerGameManager extends GameManager {
     }
 
     private void checkTurbo() {
-        if (collisionAtStartTurbo + 6 == ball.getCollisionCounter()) {
+        if (collisionAtStartTurbo + TURBO_HITS_NUMBER == ball.getCollisionCounter()) {
             collisionAtStartTurbo = NO_TURBO_CONST;
             Renderable ballImg = this.getImageReader().readImage(BALL_IMAGE_PATH, true);
             ball.renderer().setRenderable(ballImg);
@@ -389,7 +391,7 @@ public class BrickerGameManager extends GameManager {
     public void createExtraPaddle() {
         Renderable paddleImage = imageReader.readImage(
                 "assets/paddle.png", false);
-        GameObject extraPaddle = new ExtraPaddle(
+        this.extraPaddle = new ExtraPaddle(
                 Vector2.ZERO,
                 new Vector2(PADDLE_WIDTH, PADDLE_HEIGHT),
                 paddleImage,
@@ -403,6 +405,15 @@ public class BrickerGameManager extends GameManager {
         extraPaddle.setTag(EXTRA_PADDLE_TAG);
         gameObjects().addGameObject(extraPaddle);
     }
+
+    /**
+     * Retrieves the Extra Paddle.
+     * @return ExtraPaddle return the extrapaddle.
+     */
+    public ExtraPaddle getExtraPaddle() {
+        return extraPaddle;
+    }
+
     /**
      * Retrieves the collection of all game objects in the game.
      * @return The GameObjectCollection containing all active game objects.

@@ -39,15 +39,4 @@ public class Brick extends GameObject {
         super.onCollisionEnter(other, collision);
         collisionStrategy.onCollision(this, other);
     }
-
-    /**
-     * This method checks whether the brick should collide with the given object.
-     * It prevents the brick from colliding with other bricks by checking the tag.
-     * @param other The other object to check for a collision with.
-     * @return True if the brick should collide with the other object, otherwise false.
-     */
-    @Override
-    public boolean shouldCollideWith(GameObject other) {
-        return !(other.getTag().equals(BrickerGameManager.BRICK_TAG));
-    }
 }

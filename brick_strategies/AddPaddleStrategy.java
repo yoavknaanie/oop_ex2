@@ -20,14 +20,13 @@ public class AddPaddleStrategy implements CollisionStrategy {
     }
 
     private void checkIfIsThereExtraPaddle(){
-        for (GameObject obj: brickerGameManager.getGameObjects()) {
-            if (obj.getTag().equals(brickerGameManager.EXTRA_PADDLE_TAG)) {
-                ExtraPaddle extraPaddle =  (ExtraPaddle) obj;
-                extraPaddle.resetHits();
-                return;
-            }
+        ExtraPaddle extraPaddle = brickerGameManager.getExtraPaddle();
+        if (extraPaddle == null) {
+            brickerGameManager.createExtraPaddle();
         }
-        brickerGameManager.createExtraPaddle();
+        else {
+            extraPaddle.resetHits();
+        }
     }
 }
 

@@ -1,13 +1,71 @@
-yoav_kn,
-211723937,
+yoav_kn, ittai.ayalon
+211723937, 318229937
 
-1. We decided to use the 2nd strategy, we sent an instance of BrickerGameManager to the Brick calss
-and used the game manger public method removeBrick(GameObject gameObject) to remove a brick from the game.
-The advantages of this design is encapsulation - the bricker game manager is the only class who adds
-and removes objects to the game.
+1.
+We chose the second strategy: passing an instance of BrickerGameManager to the Brick class and using the game
+ manager's public method removeBrick(GameObject gameObject) to remove a brick from the game.
+Advantages of this design:
+- Encapsulation: The BrickerGameManager is solely responsible for adding and removing objects from the game,
+ maintaining clear separation of responsibilities.
+- Efficiency: By storing key objects like the ball and lives as attributes in the game manager,
+they can be accessed directly when updates are needed. This approach is faster than iterating through all
+game objects to find specific ones, such as the ball, by checking tags.
+One disadvantage of our design is that the API of BrickerGameManager becomes large and somewhat cluttered.
+It also introduces public responsibilities related to implementation details, which goes against the principle
+ of maintaining a minimal and focused API.
+An alternative approach could also align with encapsulation principles by centralizing collision-related
+responsibilities within a single class—CollisionStrategies.
+
+
 2.
 
-We decided to give Paddle another attributes: screenLeftBorder, screenrightBorder so the class Paddle will
-be able to prevent the paddle to get out the screen borders.
-We changed private void createUserPaddle() to public void createUserPaddle() so AddPaddleStrategy class
-would be able be able to create another paddle using its attribute of BrickerGameManager.
+
+
+3.
+For each CollisionStrategy, we maintain an instance of the game manager.
+This ensures that all new objects are added to the game exclusively through the BrickerGameManager,
+which serves as the sole class responsible for managing game elements in our design.
+- Puck
+To implement the puck-adding strategy, we introduced a new strategy class, AddPuckStrategy.
+We added 2 pucks using the brickerGameManager attribute.
+Since a puck behaves very similarly to a ball, we created each puck as a Ball game object but assigned it a
+Puck tag. This tagging system allows us to differentiate between balls and pucks—for example, determining when
+ to reduce a life (if it’s a ball) or when a puck moves out of the screen's bottom border
+ and remove it from the game.
+- Add Paddle
+For adding a paddle, we implemented an AddPaddleStrategy class. This strategy creates a new paddle GameObject
+using the ExtraPaddle class, which extends UserPaddle. The ExtraPaddle class includes an additional attribute
+ to track the number of hits it takes, enabling the paddle to disappear after a specified number of hits.
+This design is appropriate because the new paddle behaves identically to a UserPaddle.
+In other words, ExtraPaddle "is a" UserPaddle, making inheritance the logical choice for its implementation.
+- Turbo
+We implemented a TurboStrategy class to handle turbo-related behavior.
+When a turbo brick is collided with, the current hit count of the ball is saved.
+Subsequently, the BrickerGameManager’s update method monitors the ball's collision counter.
+Once the counter increases by 6 hits compared to the saved value, the desired effect is triggered.
+- Falling Heart
+We introduced a new FallingHeart class, responsible for managing the heart's graphical attributes and
+handling collisions through its onCollisionEnter method.
+We implemented an AddLifeStrategy class. When a brick collision occurs, this class creates a FallingHeart game
+object. the class uses the BrickerGameManager instance to add the heart to the game.
+Similarly, when its addLife method is called (triggered by the FallingHeart colliding with the user paddle),
+it leverages the BrickerGameManager to add a life to the player.
+
+
+4. Double Behaviour
+We created a new DoubleStrategy class, which follows the composition principle.
+This class contains two instances of other collision strategies.
+In the constructor, we used the CollisionStrategyFactory class to dynamically create the strategies.
+Thanks to the benefits of the factory design pattern it was very convenient to create instances using only
+ "brickType" parameter.
+Two strategies were randomly selected and constructed using the factory.
+During a collision, the onCollisionEnter method of both strategies is executed sequentially.
+To limit the number of combined behaviors to three, we implemented simple logic:
+a. Ensure that two DoubleStrategy instances are not selected simultaneously.
+b. Prevent a DoubleStrategy from randomly selecting another DoubleStrategy. This is achieved using a flag that verifies whether this is the first call to the strategy.
+
+
+5.
+We entered a small modification to the API of the UserPaddle:
+We added to the constructor two parameters - the left and right borders of the screen,
+in order to prevent the paddle to get out of the screen.

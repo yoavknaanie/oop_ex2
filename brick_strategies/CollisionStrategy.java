@@ -1,6 +1,5 @@
 package bricker.brick_strategies;
 
-import bricker.BrickerGameManager;
 import danogl.GameObject;
 
 public interface CollisionStrategy {
