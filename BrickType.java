@@ -4,7 +4,6 @@ package bricker;
  * Each type corresponds to a specific behavior or power-up associated with the brick.
  */
 public enum BrickType {
-
     ADD_PACK_TYPE,
     ADD_PADDLE_TYPE,
     TURBO_TYPE,

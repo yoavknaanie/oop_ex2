@@ -15,12 +15,13 @@ It also introduces public responsibilities related to implementation details, wh
  of maintaining a minimal and focused API.
 An alternative approach could also align with encapsulation principles by centralizing collision-related
 responsibilities within a single class—CollisionStrategies.
-
-
 2.
-
-
-
+We added a class in the code called LifeManager, which encapsulates the handling of lives. It is responsible
+ for rendering and updating the lives. Each heart, representing a life in the game, was created as a game
+object in the UI layer because the heart does not have any special properties beyond those of a regular
+object.
+The numeric value is stored as a Text class attribute in the LifeManager. The LifeManager updates the number
+and the color of the text based on the player's current number of lives.
 3.
 For each CollisionStrategy, we maintain an instance of the game manager.
 This ensures that all new objects are added to the game exclusively through the BrickerGameManager,
@@ -50,8 +51,6 @@ We implemented an AddLifeStrategy class. When a brick collision occurs, this cla
 object. the class uses the BrickerGameManager instance to add the heart to the game.
 Similarly, when its addLife method is called (triggered by the FallingHeart colliding with the user paddle),
 it leverages the BrickerGameManager to add a life to the player.
-
-
 4. Double Behaviour
 We created a new DoubleStrategy class, which follows the composition principle.
 This class contains two instances of other collision strategies.
@@ -62,9 +61,8 @@ Two strategies were randomly selected and constructed using the factory.
 During a collision, the onCollisionEnter method of both strategies is executed sequentially.
 To limit the number of combined behaviors to three, we implemented simple logic:
 a. Ensure that two DoubleStrategy instances are not selected simultaneously.
-b. Prevent a DoubleStrategy from randomly selecting another DoubleStrategy. This is achieved using a flag that verifies whether this is the first call to the strategy.
-
-
+b. Prevent a DoubleStrategy from randomly selecting another DoubleStrategy. This is achieved using a flag
+that verifies whether this is the first call to the strategy.
 5.
 We entered a small modification to the API of the UserPaddle:
 We added to the constructor two parameters - the left and right borders of the screen,
